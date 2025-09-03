@@ -469,12 +469,12 @@ const OrderTable = () => {
                             </span>
                           </dd>
                         </div>
-                        <div>
+                        {/* <div>
                           <dt className="text-sm font-medium text-gray-900">Store Comment:</dt>
                           <dd className="text-sm text-gray-700 mt-1 bg-gray-50 p-3 rounded-lg">
                             {selectedOrder.storeComment || "No store comments"}
                           </dd>
-                        </div>
+                        </div> */}
                       </dl>
                     </div>
                   </div>
