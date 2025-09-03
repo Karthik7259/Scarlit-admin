@@ -1,5 +1,5 @@
 
-import RevenueChart from "../components/analytics/RevenueChart.jsx";
+import RevenueChart from "../Components/analytics/RevenueChart.jsx";
 import ChannelPerformance from "../Components/analytics/ChannelPerformance.jsx";
 import ProductPerformance from "../Components/analytics/ProductPerformance.jsx";
 import UserRetention from "../Components/analytics/UserRetention.jsx";
