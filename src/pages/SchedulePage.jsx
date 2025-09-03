@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Clock, Package, Users } from 'lucide-react';
-import Header from '../Components/common/Header';
+import Header from '../Components/common/Header.jsx';
 import axios from 'axios';
 
 const SchedulePage = () => {

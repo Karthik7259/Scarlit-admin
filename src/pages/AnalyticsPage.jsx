@@ -1,11 +1,11 @@
 
-import RevenueChart from "../components/analytics/RevenueChart";
-import ChannelPerformance from "../Components/analytics/ChannelPerformance";
-import ProductPerformance from "../Components/analytics/ProductPerformance";
-import UserRetention from "../Components/analytics/UserRetention";
-import CustomerSegmentation from "../Components/analytics/CustomerSegmentation";
-import Header from "../Components/common/Header";
-import OverviewCards from "../Components/analytics/OverviewCards";
+import RevenueChart from "../components/analytics/RevenueChart.jsx";
+import ChannelPerformance from "../Components/analytics/ChannelPerformance.jsx";
+import ProductPerformance from "../Components/analytics/ProductPerformance.jsx";
+import UserRetention from "../Components/analytics/UserRetention.jsx";
+import CustomerSegmentation from "../Components/analytics/CustomerSegmentation.jsx";
+import Header from "../Components/common/Header.jsx";
+import OverviewCards from "../Components/analytics/OverviewCards.jsx";
 
 
 const AnalyticsPage = () => {

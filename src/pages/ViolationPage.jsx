@@ -5,11 +5,11 @@ import { motion } from "framer-motion";
 // import DailyOrders from "../components/orders/DailyOrders";
 // import OrderDistribution from "../components/orders/OrderDistribution";
 // import OrdersTable from "../components/orders/OrdersTable";
-import Header from "../Components/common/Header";
-import StatCard from "../Components/common/StatCard";
-import Dailyviolation from "../Components/violation/Dailyviolation";
-import Reports from "../Components/violation/Reports";
-import ReprotTable from "./ReprotTable";
+import Header from "../Components/common/Header.jsx";
+import StatCard from "../Components/common/StatCard.jsx";
+import Dailyviolation from "../Components/violation/Dailyviolation.jsx";
+import Reports from "../Components/violation/Reports.jsx";
+import ReprotTable from "./ReprotTable.jsx";
 
 const violationReport = {
 	totalViolations: "11",

@@ -2,11 +2,11 @@ import { Package, Loader, CheckCircle, XCircle } from "lucide-react";
 
 import { motion } from 'framer-motion'
 import React, { useState, useEffect } from 'react'
-import Header from '../Components/common/Header'
-import StatCard from '../Components/common/StatCard'
-import ViolationChart from '../Components/overview/ViolationChart'
-import PatternChart from '../Components/overview/PatternChart'
-import RiskChart from '../Components/overview/RiskChart'
+import Header from '../Components/common/Header.jsx'
+import StatCard from '../Components/common/StatCard.jsx'
+import ViolationChart from '../Components/overview/ViolationChart.jsx'
+import PatternChart from '../Components/overview/PatternChart.jsx'
+import RiskChart from '../Components/overview/RiskChart.jsx'
 
 
 const Overviewpage = () => {

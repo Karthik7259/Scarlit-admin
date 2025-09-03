@@ -2,13 +2,13 @@ import React from 'react'
 import { Routes,Route } from 'react-router-dom'
 
 
-import Overviewpage from './pages/Overviewpage'
-import ExamPage from './pages/OrderPage'
-import SettingsPage from './pages/settingsPage'
-import Sidebar from './Components/Sidebar'
-import UsersPage from './pages/UsersPage'
-import AnalyticsPage from './pages/analyticsPage'
-import SchedulePage from './pages/SchedulePage';
+import Overviewpage from './pages/Overviewpage.jsx'
+import ExamPage from './pages/OrderPage.jsx'
+import SettingsPage from './pages/settingsPage.jsx'
+import Sidebar from './Components/Sidebar.jsx'
+import UsersPage from './pages/UsersPage.jsx'
+import AnalyticsPage from './pages/analyticsPage.jsx'
+import SchedulePage from './pages/SchedulePage.jsx';
 
 const App = () => {
   return (
