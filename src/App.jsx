@@ -7,7 +7,7 @@ import ExamPage from './pages/OrderPage.jsx'
 import SettingsPage from './pages/settingsPage.jsx'
 import Sidebar from './Components/Sidebar.jsx'
 import UsersPage from './pages/UsersPage.jsx'
-import AnalyticsPage from './pages/analyticsPage.jsx'
+import AnalyticsPage from './pages/AnalyticsPage.jsx'
 import SchedulePage from './pages/SchedulePage.jsx';
 
 const App = () => {
