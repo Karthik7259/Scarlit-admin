@@ -12,7 +12,7 @@ const SIDEBAR_ITEMS = [
   },
   { name: "Orders", icon: Package, color: "#8B5CF6", href: "/order" },
   { name: "Schedule", icon: Calendar, color: "#F472B6", href: "/schedule" },
-  { name: "Fleet Management", icon: Truck, color: "#EC4899", href: "/fleet" },
+  { name: "Order Management", icon: Truck, color: "#EC4899", href: "/fleet" },
   { name: "Analytics", icon: TrendingUp, color: "#3B82F6", href: "/analytics" },
   { name: "Settings", icon: Settings, color: "#6EE7B7", href: "/setting" },
 ];

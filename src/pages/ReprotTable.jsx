@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Eye } from "lucide-react";
 
+
 const violationData = [
 	{ id: "VIO001", candidate: "John Doe", riskScore: 85, status: "Severe", date: "2025-03-01" },
 	{ id: "VIO002", candidate: "Jane Smith", riskScore: 72, status: "High", date: "2025-03-02" },

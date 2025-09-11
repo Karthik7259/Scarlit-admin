@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react';
+import OrderTable from './OrderTable.jsx';
 import Header from '../Components/common/Header';
 import { Truck, TruckIcon, PackageCheck, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
@@ -59,7 +60,10 @@ const UsersPage = () => {
 
                          
               {/* USER CHARTS */}
-              
+              <div className="mt-8">
+                <h2 className="text-lg font-semibold mb-4">Order History</h2>
+                <OrderTable />
+              </div>
                 </main>
 		</div>
   )
