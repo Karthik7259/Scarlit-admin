@@ -10,6 +10,7 @@ import UsersPage from './pages/UsersPage.jsx'
 import AnalyticsPage from './pages/AnalyticsPage.jsx'
 import SchedulePage from './pages/SchedulePage.jsx';
 
+
 const App = () => {
   return (
     <div
