@@ -67,7 +67,8 @@ const OrderTable = () => {
     }));
   };
 
-  // Submit updated order details  const handleSubmit = async () => {
+  // Submit updated order details const handleSubmit = async () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
       // Filter only allowed fields as per backend API
