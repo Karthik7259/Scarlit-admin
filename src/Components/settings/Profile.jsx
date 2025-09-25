@@ -15,7 +15,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const response = await axios.get("http://localhost:4000/admin/profile");
+        const response = await axios.get("https://scarlit-backend.onrender.com/admin/profile");
         console.log(response.data.Admin.email); // Logs the actual profile data
         setProfileData(response.data.Admin); // Store the profile data in state
 		

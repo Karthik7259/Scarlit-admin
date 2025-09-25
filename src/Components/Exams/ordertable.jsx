@@ -34,7 +34,8 @@ const OrderTable = () => {
     (order) =>
       order.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.productType?.toLowerCase().includes(searchTerm.toLowerCase())
+      order.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.orderId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -66,25 +67,35 @@ const OrderTable = () => {
     }));
   };
 
-  // Submit updated order details
-  const handleSubmit = async () => {
-    // Pagination logic
-    const totalPages = Math.ceil(filteredOrders.length / rowsPerPage);
+  // Submit updated order details  const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      // Filter only allowed fields as per backend API
+      const allowedFields = ['name', 'phone', 'address', 'comments', 'selectedSize', 'selectedColour', 'status'];
+      const updateData = {
+        email: editingOrder.email, // Required field for finding the order
+      };
+      
+      // Only include allowed fields that have been modified
+      allowedFields.forEach(field => {
+        if (editingOrder[field] !== undefined) {
+          updateData[field] = editingOrder[field];
+        }
+      });
+
       const res = await axios.put(
         `https://scarlit-backend.onrender.com/api/order/update`,
-        editingOrder
+        updateData
       );
       
       // Update the orders list with the updated order
       setOrders(prevOrders => 
         prevOrders.map(order => 
-          order._id === editingOrder._id ? editingOrder : order
+          order.email === editingOrder.email ? { ...order, ...updateData } : order
         )
       );
       
-      setSelectedOrder(editingOrder);
+      setSelectedOrder({ ...selectedOrder, ...updateData });
       setIsEditing(false);
       setIsSubmitting(false);
       
@@ -94,8 +105,9 @@ const OrderTable = () => {
       console.error(err);
       setIsSubmitting(false);
       
-      // Show error toast
-      toast.error("Failed to update order. Please try again.");
+      // Show error toast with backend message if available
+      const errorMessage = err.response?.data?.message || "Failed to update order. Please try again.";
+      toast.error(errorMessage);
     }
   };
 
@@ -203,13 +215,14 @@ const OrderTable = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Type</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Colour</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -220,6 +233,7 @@ const OrderTable = () => {
                       onClick={() => setSelectedOrder(order)}
                       whileHover={{ backgroundColor: "rgba(249, 250, 251, 1)" }}
                     >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.orderId}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -233,22 +247,32 @@ const OrderTable = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.phone}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {order.productType}
+                          {order.productName}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.brand}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.size}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.productBrand}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.selectedSize}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div 
                             className="h-4 w-4 rounded-full border border-gray-300 mr-2"
-                            style={{ backgroundColor: order.colour?.toLowerCase() }}
+                            style={{ backgroundColor: order.selectedColour?.toLowerCase() }}
                           ></div>
-                          <span className="text-sm font-medium text-gray-700">{order.colour}</span>
+                          <span className="text-sm font-medium text-gray-700">{order.selectedColour}</span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          order.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                          order.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Pending'}
+                        </span>
                       </td>
                     </motion.tr>
                   ))}
@@ -319,16 +343,10 @@ const OrderTable = () => {
                           <div className="flex items-start">
                             <dt className="text-sm font-medium text-gray-900 w-20">Email:</dt>
                             <dd className="text-sm text-gray-700 break-all">
-                              {isEditing ? (
-                                <input
-                                  type="email"
-                                  className="border border-gray-300 rounded px-2 py-1 w-full"
-                                  value={editingOrder.email}
-                                  onChange={(e) => handleInputChange('email', e.target.value)}
-                                />
-                              ) : (
-                                selectedOrder.email
-                              )}
+                              <div className="bg-gray-100 px-2 py-1 rounded text-gray-600">
+                                {selectedOrder.email}
+                              </div>
+                              <span className="text-xs text-gray-400 mt-1">Email cannot be changed</span>
                             </dd>
                           </div>
                           <div className="flex items-start">
@@ -370,33 +388,27 @@ const OrderTable = () => {
                         <h3 className="text-sm font-medium text-gray-500">Product Details</h3>
                         <dl className="mt-2 space-y-2">
                           <div className="flex items-start">
-                            <dt className="text-sm font-medium text-gray-900 w-24">Product Type:</dt>
+                            <dt className="text-sm font-medium text-gray-900 w-24">Order ID:</dt>
                             <dd className="text-sm text-gray-700">
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  className="border border-gray-300 rounded px-2 py-1 w-full"
-                                  value={editingOrder.productType}
-                                  onChange={(e) => handleInputChange('productType', e.target.value)}
-                                />
-                              ) : (
-                                selectedOrder.productType
-                              )}
+                              <div className="bg-gray-100 px-2 py-1 rounded text-gray-600">
+                                {selectedOrder.orderId}
+                              </div>
+                            </dd>
+                          </div>
+                          <div className="flex items-start">
+                            <dt className="text-sm font-medium text-gray-900 w-24">Product:</dt>
+                            <dd className="text-sm text-gray-700">
+                              <div className="bg-gray-100 px-2 py-1 rounded text-gray-600">
+                                {selectedOrder.productName}
+                              </div>
                             </dd>
                           </div>
                           <div className="flex items-start">
                             <dt className="text-sm font-medium text-gray-900 w-24">Brand:</dt>
                             <dd className="text-sm text-gray-700">
-                              {isEditing ? (
-                                <input
-                                  type="text"
-                                  className="border border-gray-300 rounded px-2 py-1 w-full"
-                                  value={editingOrder.brand}
-                                  onChange={(e) => handleInputChange('brand', e.target.value)}
-                                />
-                              ) : (
-                                selectedOrder.brand
-                              )}
+                              <div className="bg-gray-100 px-2 py-1 rounded text-gray-600">
+                                {selectedOrder.productBrand}
+                              </div>
                             </dd>
                           </div>
                           <div className="flex items-start">
@@ -406,11 +418,11 @@ const OrderTable = () => {
                                 <input
                                   type="text"
                                   className="border border-gray-300 rounded px-2 py-1 w-full"
-                                  value={editingOrder.size}
-                                  onChange={(e) => handleInputChange('size', e.target.value)}
+                                  value={editingOrder.selectedSize}
+                                  onChange={(e) => handleInputChange('selectedSize', e.target.value)}
                                 />
                               ) : (
-                                selectedOrder.size
+                                selectedOrder.selectedSize
                               )}
                             </dd>
                           </div>
@@ -419,17 +431,17 @@ const OrderTable = () => {
                             <dd className="flex items-center">
                               <div 
                                 className="h-4 w-4 rounded-full border border-gray-300 mr-2"
-                                style={{ backgroundColor: (isEditing ? editingOrder.colour : selectedOrder.colour)?.toLowerCase() }}
+                                style={{ backgroundColor: (isEditing ? editingOrder.selectedColour : selectedOrder.selectedColour)?.toLowerCase() }}
                               ></div>
                               {isEditing ? (
                                 <input
                                   type="text"
                                   className="border border-gray-300 text-slate-900 rounded px-2 py-1 w-full"
-                                  value={editingOrder.colour}
-                                  onChange={(e) => handleInputChange('colour', e.target.value)}
+                                  value={editingOrder.selectedColour}
+                                  onChange={(e) => handleInputChange('selectedColour', e.target.value)}
                                 />
                               ) : (
-                                <span className="text-sm font-medium text-gray-700">{selectedOrder.colour}</span>
+                                <span className="text-sm font-medium text-gray-700">{selectedOrder.selectedColour}</span>
                               )}
                             </dd>
                           </div>
@@ -466,21 +478,21 @@ const OrderTable = () => {
                             {isEditing ? (
                               <select
                                 className="border border-gray-300 rounded px-2 py-1 text-black"
-                                value={editingOrder.status || "Pending"}
+                                value={editingOrder.status || "pending"}
                                 onChange={(e) => handleStatusChange(e.target.value)}
                               >
-                                <option value="Pending" className="text-yellow-300">Pending</option>
-                                <option value="Processing" className="text-yellow-400">Processing</option>
-                                <option value="Completed" className="text-green-400">Completed</option>
-                                <option value="Cancelled" className="text-red-400">Cancelled</option>
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
                               </select>
                             ) : (
                               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                ${selectedOrder.status === 'Completed' ? 'bg-green-100 text-green-800' : 
-                                  selectedOrder.status === 'Processing' ? 'bg-yellow-100 text-yellow-800' : 
-                                  selectedOrder.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                                ${selectedOrder.status === 'completed' ? 'bg-green-100 text-green-800' : 
+                                  selectedOrder.status === 'processing' ? 'bg-yellow-100 text-yellow-800' : 
+                                  selectedOrder.status === 'cancelled' ? 'bg-red-100 text-red-800' :
                                   'bg-gray-100 text-gray-800'}`}>
-                                {selectedOrder.status || "Pending"}
+                                {selectedOrder.status ? selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1) : "Pending"}
                               </span>
                             )}
                           </dd>

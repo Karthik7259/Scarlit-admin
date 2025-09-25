@@ -1,243 +1,365 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Check, Clock, Package, Users } from 'lucide-react';
+
+
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Package, Plus, X, Tag, Palette, Zap, CheckCircle } from 'lucide-react';
 import Header from '../Components/common/Header.jsx';
 import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const SchedulePage = () => {
-  const [orderType, setOrderType] = useState('');
-  const [employees, setEmployees] = useState([]);
-  const [time, setTime] = useState('');
-  const [date, setDate] = useState('');
-  const [duration, setDuration] = useState('60');
+  const [formData, setFormData] = useState({
+    name: '',
+    brand: '',
+    sizes: [],
+    colours: []
+  });
+  const [sizeInput, setSizeInput] = useState('');
+  const [colourInput, setColourInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [mEmployees, setMEmployees] = useState([]);
+  const [focusedField, setFocusedField] = useState(null);
 
-  // Order type options
-  const orderOptions = [
-    { id: 1, name: 'Electronics Delivery' },
-    { id: 2, name: 'Grocery Order' },
-    { id: 3, name: 'Furniture Transport' },
-    { id: 4, name: 'Clothing Shipment' },
-    { id: 5, name: 'Pharmaceutical Delivery' },
-  ];
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-  // Fallback employees if API fails
-  const defaultEmployees = [
-    { id: 1, name: 'Ravi Kumar' },
-    { id: 2, name: 'Anita Sharma' },
-    { id: 3, name: 'Vikram Singh' },
-    { id: 4, name: 'Neha Patel' },
-    { id: 5, name: 'Arjun Mehta' },
-  ];
-
-  // Fetch employees from backend
-  const fetchEmployees = async () => {
-    try {
-      const response = await axios.get('http://localhost:4000/employees');
-      const employeeData = response.data.map((emp, index) => ({
-        id: emp._id || index + 1,
-        name: emp.fullname || `Employee ${index + 1}`,
+  const addSize = () => {
+    if (sizeInput.trim() && !formData.sizes.includes(sizeInput.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        sizes: [...prev.sizes, sizeInput.trim()]
       }));
-      setMEmployees(employeeData);
-    } catch (err) {
-      console.error('Error fetching employees:', err);
-      setMEmployees(defaultEmployees);
+      setSizeInput('');
     }
   };
 
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
+  const removeSize = (sizeToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      sizes: prev.sizes.filter(size => size !== sizeToRemove)
+    }));
+  };
 
-  const employeeOptions = mEmployees.length > 0 ? mEmployees : defaultEmployees;
-
-  // Toggle employee selection
-  const handleEmployeeToggle = (empId) => {
-    if (employees.includes(empId)) {
-      setEmployees(employees.filter((id) => id !== empId));
-    } else {
-      setEmployees([...employees, empId]);
+  const addColour = () => {
+    if (colourInput.trim() && !formData.colours.includes(colourInput.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        colours: [...prev.colours, colourInput.trim()]
+      }));
+      setColourInput('');
     }
   };
 
-  // Submit order schedule
+  const removeColour = (colourToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      colours: prev.colours.filter(colour => colour !== colourToRemove)
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.name || !formData.brand || formData.sizes.length === 0 || formData.colours.length === 0) {
+      toast.error('Please fill all fields and add at least one size and colour');
+      return;
+    }
+
     setIsSubmitting(true);
-
-    const selectedOrderType = orderOptions.find((opt) => opt.id === orderType)?.name;
-    const selectedEmployees = employees.map(
-      (empId) => employeeOptions.find((opt) => opt.id === empId)?.name
-    );
-
-    const orderData = {
-      orderType: selectedOrderType,
-      assignedEmployees: selectedEmployees,
-      date,
-      time,
-      estimatedDuration: `${duration} minutes`,
-    };
-
+    
     try {
-      console.log('Order Data:', orderData);
-      const response = await axios.post('http://localhost:5000/orders/add', orderData);
-      console.log('Success:', response.data);
-      setShowConfirmation(true);
+      const response = await axios.post('https://scarlit-backend.onrender.com/api/products/create', formData);
+      
+      if (response.data.success) {
+        toast.success('Product created successfully! 🎉');
+        setFormData({ name: '', brand: '', sizes: [], colours: [] });
+        setSizeInput('');
+        setColourInput('');
+      } else {
+        toast.error(response.data.message || 'Failed to create product');
+      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error creating product:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to create product. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const resetForm = () => {
-    setOrderType('');
-    setEmployees([]);
-    setTime('');
-    setDate('');
-    setDuration('60');
-    setShowConfirmation(false);
-  };
-
   return (
-    <div className="flex-1 overflow-auto bg-blue-300 relative z-10">
-      <Header title="Schedule Employee Order" />
+    <div className="flex-1 overflow-auto relative z-10 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+      <Header title="Create New Product" />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
 
       <motion.div
-        className="max-w-4xl mx-auto py-6 px-4 lg:px-8"
+        className="max-w-2xl mx-auto py-8 px-4 lg:px-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {showConfirmation ? (
-          <div className="bg-gray-800 bg-opacity-60 backdrop-blur-md p-8 rounded-xl border border-green-500 text-center">
-            <div className="w-16 h-16 bg-green-500 rounded-full mx-auto flex items-center justify-center mb-4">
-              <Check size={32} />
+        {/* Header Card */}
+        <motion.div
+          className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-xl p-6 mb-8 text-white"
+          initial={{ scale: 0.95 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="flex items-center space-x-4">
+            <div className="bg-white/20 p-3 rounded-full">
+              <Package size={32} />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">Order Scheduled Successfully!</h2>
-            <p className="text-gray-300 mb-6">
-              The order has been assigned and employees will be notified.
-            </p>
-            <button
-              onClick={resetForm}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors"
-            >
-              Schedule Another Order
-            </button>
+            <div>
+              <h1 className="text-2xl font-bold">Create New Product</h1>
+              <p className="text-blue-100">Fill in the details below to add a new product to your inventory</p>
+            </div>
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Order Type Selection */}
-            <div className="bg-gray-800 bg-opacity-60 backdrop-blur-md p-6 rounded-xl border border-gray-700">
-              <div className="flex items-center mb-4">
-                <Package className="text-blue-400 mr-2" size={20} />
-                <h3 className="text-lg font-medium text-white">Select Order Type</h3>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {orderOptions.map((orderOption) => (
-                  <div
-                    key={orderOption.id}
-                    onClick={() => setOrderType(orderOption.id)}
-                    className={`p-4 rounded-lg cursor-pointer transition-all ${
-                      orderType === orderOption.id
-                        ? 'bg-blue-600 text-white border-2 border-blue-400'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    {orderOption.name}
-                  </div>
-                ))}
-              </div>
+        </motion.div>
+
+        {/* Form Card */}
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          <div className="p-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+          
+          <form onSubmit={handleSubmit} className="p-8 space-y-8">
+            {/* Product Name */}
+            <div className="space-y-3">
+              <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <Tag size={18} className="mr-2 text-blue-600" />
+                Product Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                onFocus={() => setFocusedField('name')}
+                onBlur={() => setFocusedField(null)}
+                className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                  focusedField === 'name' 
+                    ? 'border-blue-500 ring-4 ring-blue-100' 
+                    : 'border-gray-200 hover:border-gray-300'
+                } focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100`}
+                placeholder="e.g., Premium Cotton Hoodie"
+                required
+              />
             </div>
 
-            {/* Employee Selection */}
-            <div className="bg-gray-800 bg-opacity-60 backdrop-blur-md p-6 rounded-xl border border-gray-700">
-              <div className="flex items-center mb-4">
-                <Users className="text-blue-400 mr-2" size={20} />
-                <h3 className="text-lg font-medium text-white">Assign Employees</h3>
-              </div>
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {employeeOptions.map((emp) => (
-                  <div
-                    key={emp.id}
-                    onClick={() => handleEmployeeToggle(emp.id)}
-                    className={`p-4 rounded-lg cursor-pointer transition-all flex justify-between items-center ${
-                      employees.includes(emp.id)
-                        ? 'bg-blue-600 text-white border border-blue-400'
-                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    <span>{emp.name}</span>
-                    {employees.includes(emp.id) && <Check size={18} />}
-                  </div>
-                ))}
-              </div>
+            {/* Brand */}
+            <div className="space-y-3">
+              <label className="flex items-center text-sm font-semibold text-gray-700 mb-2">
+                <Zap size={18} className="mr-2 text-orange-600" />
+                Brand
+              </label>
+              <input
+                type="text"
+                name="brand"
+                value={formData.brand}
+                onChange={handleInputChange}
+                onFocus={() => setFocusedField('brand')}
+                onBlur={() => setFocusedField(null)}
+                className={`w-full px-4 py-3 border-2 rounded-xl transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                  focusedField === 'brand' 
+                    ? 'border-orange-500 ring-4 ring-orange-100' 
+                    : 'border-gray-200 hover:border-gray-300'
+                } focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-100`}
+                placeholder="e.g., Nike, Adidas, Supreme"
+                required
+              />
             </div>
 
-            {/* Time & Duration */}
-            <div className="bg-gray-800 bg-opacity-60 backdrop-blur-md p-6 rounded-xl border border-gray-700">
-              <div className="flex items-center mb-4">
-                <Clock className="text-blue-400 mr-2" size={20} />
-                <h3 className="text-lg font-medium text-white">Delivery Details</h3>
+            {/* Sizes */}
+            <div className="space-y-4">
+              <label className="flex items-center text-sm font-semibold text-gray-700">
+                <span className="bg-blue-100 text-blue-800 p-1 rounded mr-2">
+                  S
+                </span>
+                Available Sizes
+              </label>
+              
+              <div className="flex space-x-3">
+                <input
+                  type="text"
+                  value={sizeInput}
+                  onChange={(e) => setSizeInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSize())}
+                  onFocus={() => setFocusedField('sizes')}
+                  onBlur={() => setFocusedField(null)}
+                  className={`flex-1 px-4 py-3 border-2 rounded-xl transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                    focusedField === 'sizes' 
+                      ? 'border-blue-500 ring-4 ring-blue-100' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  } focus:outline-none`}
+                  placeholder="Enter size (e.g., S, M, L, XL)"
+                />
+                <motion.button
+                  type="button"
+                  onClick={addSize}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all"
+                >
+                  <Plus size={20} />
+                  <span className="font-semibold">Add</span>
+                </motion.button>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Date</label>
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Time</label>
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Estimated Duration</label>
-                  <select
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg p-2 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
+              
+              <AnimatePresence>
+                {formData.sizes.length > 0 && (
+                  <motion.div 
+                    className="flex flex-wrap gap-3 pt-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                   >
-                    <option value="30">30 minutes</option>
-                    <option value="60">1 hour</option>
-                    <option value="90">1 hour 30 minutes</option>
-                    <option value="120">2 hours</option>
-                    <option value="180">3 hours</option>
-                  </select>
-                </div>
-              </div>
+                    {formData.sizes.map((size) => (
+                      <motion.span
+                        key={size}
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-blue-100 to-blue-50 text-blue-800 border border-blue-200 shadow-sm"
+                      >
+                        {size}
+                        <button
+                          type="button"
+                          onClick={() => removeSize(size)}
+                          className="ml-2 p-1 rounded-full hover:bg-blue-200 transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </motion.span>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Submit */}
-            <div className="flex justify-end">
+            {/* Colours */}
+            <div className="space-y-4">
+              <label className="flex items-center text-sm font-semibold text-gray-700">
+                <Palette size={18} className="mr-2 text-green-600" />
+                Available Colours
+              </label>
+              
+              <div className="flex space-x-3">
+                <input
+                  type="text"
+                  value={colourInput}
+                  onChange={(e) => setColourInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addColour())}
+                  onFocus={() => setFocusedField('colours')}
+                  onBlur={() => setFocusedField(null)}
+                  className={`flex-1 px-4 py-3 border-2 rounded-xl transition-all duration-200 text-gray-900 placeholder-gray-500 ${
+                    focusedField === 'colours' 
+                      ? 'border-green-500 ring-4 ring-green-100' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  } focus:outline-none`}
+                  placeholder="Enter colour (e.g., Black, Navy Blue, Red)"
+                />
+                <motion.button
+                  type="button"
+                  onClick={addColour}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all"
+                >
+                  <Plus size={20} />
+                  <span className="font-semibold">Add</span>
+                </motion.button>
+              </div>
+              
+              <AnimatePresence>
+                {formData.colours.length > 0 && (
+                  <motion.div 
+                    className="flex flex-wrap gap-3 pt-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    {formData.colours.map((colour) => (
+                      <motion.span
+                        key={colour}
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-green-100 to-green-50 text-green-800 border border-green-200 shadow-sm"
+                      >
+                        {colour}
+                        <button
+                          type="button"
+                          onClick={() => removeColour(colour)}
+                          className="ml-2 p-1 rounded-full hover:bg-green-200 transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </motion.span>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Submit Button */}
+            <motion.div 
+              className="flex justify-end pt-6"
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
               <button
                 type="submit"
-                disabled={!orderType || employees.length === 0 || !time || !date || isSubmitting}
-                className={`px-6 py-3 rounded-lg transition-all ${
-                  !orderType || employees.length === 0 || !time || !date || isSubmitting
-                    ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-500'
+                disabled={isSubmitting}
+                className={`px-8 py-4 rounded-xl font-semibold text-lg flex items-center space-x-3 shadow-lg transition-all duration-200 ${
+                  isSubmitting
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 hover:shadow-xl'
                 }`}
               >
-                {isSubmitting ? 'Scheduling...' : 'Schedule Order'}
+                {isSubmitting ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Package size={24} />
+                    </motion.div>
+                    <span>Creating Product...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={24} />
+                    <span>Create Product</span>
+                  </>
+                )}
               </button>
-            </div>
+            </motion.div>
           </form>
-        )}
+        </div>
+
+        {/* Form Status */}
+        <motion.div 
+          className="mt-6 text-center text-gray-600 text-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <p>✓ All fields are required • ✓ Add at least one size and colour • ✓ Product will be available immediately</p>
+        </motion.div>
       </motion.div>
     </div>
   );
