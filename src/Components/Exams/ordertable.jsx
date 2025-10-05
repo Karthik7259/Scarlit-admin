@@ -12,6 +12,14 @@ const OrderTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Status options (admin can add new ones during edit)
+  const [statusOptions, setStatusOptions] = useState([
+    'pending',
+    'processing',
+    'completed',
+    'cancelled',
+  ]);
+  const [newStatusInput, setNewStatusInput] = useState('');
 
   // Fetch orders
   useEffect(() => {
@@ -73,9 +81,20 @@ const OrderTable = () => {
     try {
       // Filter only allowed fields as per backend API
       const allowedFields = ['name', 'phone', 'address', 'comments', 'selectedSize', 'selectedColour', 'status'];
-      const updateData = {
-        email: editingOrder.email, // Required field for finding the order
-      };
+      // Use a unique identifier to target the correct order on the backend.
+      // Prefer Mongo _id when available, fall back to orderId, then email.
+      const updateData = {};
+      if (editingOrder._id) {
+        updateData._id = editingOrder._id;
+      }
+      // Always include orderId when editing (helps backend locate specific order)
+      if (editingOrder.orderId) {
+        updateData.orderId = editingOrder.orderId;
+      }
+      // Include email as last resort/for reference
+      if (!updateData._id && !updateData.orderId && editingOrder.email) {
+        updateData.email = editingOrder.email;
+      }
       
       // Only include allowed fields that have been modified
       allowedFields.forEach(field => {
@@ -83,20 +102,33 @@ const OrderTable = () => {
           updateData[field] = editingOrder[field];
         }
       });
+      // Also include productBrand if available
+      if (editingOrder.productBrand !== undefined) {
+        updateData.productBrand = editingOrder.productBrand;
+      }
 
+      console.log('Updating order with payload:', updateData);
       const res = await axios.put(
         `https://scarlit-backend.onrender.com/api/order/update`,
         updateData
       );
+      console.log('Update response:', res?.data);
       
-      // Update the orders list with the updated order
+      // Update the orders list with the updated order (match by _id, then orderId, then email)
       setOrders(prevOrders => 
-        prevOrders.map(order => 
-          order.email === editingOrder.email ? { ...order, ...updateData } : order
-        )
+        prevOrders.map(order => {
+          const matchesId = editingOrder._id ? order._id === editingOrder._id : false;
+          const matchesOrderId = !matchesId && editingOrder.orderId ? order.orderId === editingOrder.orderId : false;
+          const matchesEmail = !matchesId && !matchesOrderId && editingOrder.email ? order.email === editingOrder.email : false;
+          if (matchesId || matchesOrderId || matchesEmail) {
+            return { ...order, ...updateData };
+          }
+          return order;
+        })
       );
-      
-      setSelectedOrder({ ...selectedOrder, ...updateData });
+
+      // Update the currently selected order reference similarly
+      setSelectedOrder(prev => ({ ...prev, ...updateData }));
       setIsEditing(false);
       setIsSubmitting(false);
       
@@ -476,17 +508,42 @@ const OrderTable = () => {
                         <div className="flex items-start">
                           <dt className="text-sm font-medium text-gray-900">Status:</dt>
                           <dd className="ml-2">
-                            {isEditing ? (
-                              <select
-                                className="border border-gray-300 rounded px-2 py-1 text-black"
-                                value={editingOrder.status || "pending"}
-                                onChange={(e) => handleStatusChange(e.target.value)}
-                              >
-                                <option value="pending">Pending</option>
-                                <option value="processing">Processing</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                              </select>
+                              {isEditing ? (
+                              <div>
+                                <div className="flex items-center space-x-2">
+                                  <select
+                                    className="border border-gray-300 rounded px-2 py-1 text-black"
+                                    value={editingOrder.status || "pending"}
+                                    onChange={(e) => handleStatusChange(e.target.value)}
+                                  >
+                                    {statusOptions.map((opt) => (
+                                      <option key={opt} value={opt} className="text-black">{opt.charAt(0).toUpperCase() + opt.slice(1)}</option>
+                                    ))}
+                                  </select>
+                                  <input
+                                    type="text"
+                                    className="border border-gray-300 rounded px-2 py-1 text-sm text-black"
+                                    placeholder="Add status"
+                                    value={newStatusInput}
+                                    onChange={(e) => setNewStatusInput(e.target.value)}
+                                  />
+                                  <button
+                                    type="button"
+                                    className="px-2 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
+                                    onClick={() => {
+                                      const normalized = newStatusInput.trim().toLowerCase();
+                                      if (!normalized) return toast.info('Enter a status');
+                                      if (statusOptions.includes(normalized)) return toast.info('Status already exists');
+                                      setStatusOptions(prev => [...prev, normalized]);
+                                      setNewStatusInput('');
+                                      toast.success('New status added');
+                                    }}
+                                  >
+                                    Add
+                                  </button>
+                                </div>
+                                <p className="text-xs text-black mt-1">Add custom status for orders (saved in this session)</p>
+                              </div>
                             ) : (
                               <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                 ${selectedOrder.status === 'completed' ? 'bg-green-100 text-green-800' : 
