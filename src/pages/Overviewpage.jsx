@@ -40,28 +40,28 @@ const Overviewpage = () => {
           <StatCard 
   name="Total Orders"
   icon={Package} 
-  value="540" 
+  value="0" 
   color="#9333ea" 
 />
 
 <StatCard 
   name="In Progress"
   icon={Loader} 
-  value="72" 
+  value="0" 
   color="#3b82f6" 
 />
 
 <StatCard 
   name="Delivered Today"
   icon={CheckCircle} 
-  value="98" 
+  value="0" 
   color="#22c55e" 
 />
 
 <StatCard 
   name="Cancelled Orders"
   icon={XCircle} 
-  value="12" 
+  value="0" 
   color="#ef4444" 
 />
 

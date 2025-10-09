@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Plus, X, Tag, Palette, Zap, CheckCircle } from 'lucide-react';

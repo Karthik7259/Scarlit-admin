@@ -21,28 +21,28 @@ const OrderPage = () => {
              <StatCard 
   name="Employees on Duty" 
   icon={Users} 
-  value="42" 
+  value="0" 
   color="#4F46E5" 
 />
 
 <StatCard 
   name="Orders Processed" 
   icon={ClipboardCheck} 
-  value="320" 
+  value="0" 
   color="#10B981" 
 />
 
 <StatCard 
   name="Pending Orders" 
   icon={Package} 
-  value="15" 
+  value="0" 
   color="#F59E0B" 
 />
 
 <StatCard 
   name="Employee Deliveries" 
   icon={Truck} 
-  value="28" 
+  value="0" 
   color="#DC2626" 
 />
       </motion.div>

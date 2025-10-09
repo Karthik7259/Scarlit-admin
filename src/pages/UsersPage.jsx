@@ -9,10 +9,10 @@ import StatCard from '../Components/common/StatCard';
 
 
 const fleetStats = {
-  totalVehicles: 25,
-  activeDeliveries: 12,
-  availableDrivers: 8,
-  maintenanceDue: 3,
+  totalVehicles: 0,
+  activeDeliveries: 0,
+  availableDrivers: 0,
+  maintenanceDue: 0,
 };
 
 
@@ -20,7 +20,7 @@ const fleetStats = {
 const UsersPage = () => {
   return (
     <div className='flex-1 overflow-auto relative z-10'>
-        <Header title='Fleet Management' />
+        <Header title='Order Management' />
         <main className='max-w-7xl mx-auto py-6 px-4 lg:px-8'>
         {/* STATS */}
 				<motion.div
